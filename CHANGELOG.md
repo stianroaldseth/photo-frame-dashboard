@@ -11,11 +11,9 @@ All notable changes, one section per phase. Format based on
 - `screenshots/phase2-poc.png`: the proof of concept at 1920×1200.
 
 ### Removed
-- Wrangler (Cloudflare Workers) deploy script and dependency.
-
-### Pending
-- Removing the photo-frame rooting material (`docs/`, `scripts/`, `dashboard/kiosk/`,
-  frame-report GitHub templates, `dashboard/wrangler.jsonc`) is waiting on Stian's go-ahead.
+- Wrangler (Cloudflare Workers) deploy script, dependency and `dashboard/wrangler.jsonc`.
+- Photo-frame rooting material: `docs/`, `scripts/`, `dashboard/kiosk/`, `.github/` frame-report templates.
+- Frame-specific entries in `.gitignore` (now ignores `node_modules/`, `dist/` and `.env` files).
 
 ### Unchanged
 - The dashboard itself still runs on mock data with all its original views.

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var D = window.DATA;
-  var PX = 72, START = 6, END = 23; // 72px per hour, 6 AM → 11 PM
+  var PX = 72, START = 6, END = 23; // 72px per hour, 06 → 23
   var V = { mode: 'day', date: null, el: null, scroll: null };
   var MODES = [['day', 'Today'], ['3day', '3 Day'], ['week', 'Week'], ['month', 'Month']];
 
@@ -51,7 +51,7 @@
     var travel = e.travel ? '<span class="ev-travel" style="height:' + (e.travel * PX / 60) + 'px"></span>' : '';
     return '<button class="' + cls + '" data-ev="' + e.id + '" style="' + App.pstyle(p) + ';' + style + '">' + travel +
       '<span class="ev-title">' + App.esc(e.title) + '</span>' +
-      '<span class="ev-meta">' + App.fmt.range(e.start, e.end) + (e.travel ? ' · <b>' + App.icon('car', 16) + 'Leave ' + App.fmt.time(App.leaveBy(e), false) + '</b>' : '') + '</span>' +
+      '<span class="ev-meta">' + App.fmt.range(e.start, e.end) + (e.travel ? ' · <b>' + App.icon('car', 16) + 'Leave ' + App.fmt.time(App.leaveBy(e)) + '</b>' : '') + '</span>' +
       (others.length && !App.isFamily(e) ? '<span class="ev-with">' + App.dots(others, 14) + '</span>' : '') +
       (App.isFamily(e) ? '<span class="ev-with">' + App.dots(D.ALL, 14) + '</span>' : '') +
       '</button>';
@@ -72,7 +72,7 @@
   function hoursCol() {
     var h = '';
     for (var i = START; i <= END; i++) {
-      h += '<div class="hr" style="top:' + (i - START) * PX + 'px"><span>' + (i === 12 ? 'Noon' : (i % 12 || 12) + (i < 12 ? ' AM' : ' PM')) + '</span></div>';
+      h += '<div class="hr" style="top:' + (i - START) * PX + 'px"><span>' + (i < 10 ? '0' : '') + i + '</span></div>';
     }
     return h;
   }
@@ -80,7 +80,7 @@
     var now = App.now(), idx = -1;
     days.forEach(function (d, i) { if (App.sameDay(d, now)) idx = i; });
     if (idx < 0 || now.getHours() < START || now.getHours() >= END) return '';
-    return '<div class="now-line" style="top:' + y(now) + 'px"><span class="num">' + App.fmt.time(now, false) + '</span></div>';
+    return '<div class="now-line" style="top:' + y(now) + 'px"><span class="num">' + App.fmt.time(now) + '</span></div>';
   }
 
   // ------------------------------------------------------------ Today (lanes per person)
@@ -155,7 +155,7 @@
         ad.map(function (e) { return '<button class="wk-ad" data-ev="' + e.id + '" style="' + App.pstyle(App.evColor(e)) + '">' + App.esc(e.title) + '</button>'; }).join('') +
         list.slice(0, max).map(function (e) {
           return '<button class="wk-ev' + (e.end <= now ? ' is-past' : '') + '" data-ev="' + e.id + '" style="' + App.pstyle(App.evColor(e)) + '">' +
-            '<span class="wk-t">' + App.fmt.time(e.start, false) + '</span><span class="wk-n">' + App.esc(e.title) + '</span></button>';
+            '<span class="wk-t">' + App.fmt.time(e.start) + '</span><span class="wk-n">' + App.esc(e.title) + '</span></button>';
         }).join('') +
         (more > 0 ? '<button class="wk-more" data-day="' + (+d) + '">+' + more + ' more</button>' : '') +
         (!list.length && !ad.length ? '<div class="wk-free serif"><i>Free</i></div>' : '') +
@@ -285,7 +285,7 @@
     var now = App.now();
     var st = { who: [], day: 0, time: '15:30', dur: 60, title: '' };
     var days = [0, 1, 2, 3, 4];
-    var times = [['08:00', '8 AM'], ['12:00', 'Noon'], ['15:30', '3:30 PM'], ['16:30', '4:30 PM'], ['18:00', '6 PM'], ['19:30', '7:30 PM']];
+    var times = [['08:00', '08:00'], ['12:00', '12:00'], ['15:30', '15:30'], ['16:30', '16:30'], ['18:00', '18:00'], ['19:30', '19:30']];
     var ideas = ['Soccer', 'Playdate', 'Dentist', 'Dinner out', 'Swim', 'Birthday party'];
     App.sheet(
       '<div class="sheet-pad add">' +
@@ -363,7 +363,7 @@
     if (App.current !== 'calendar') return;
     var line = V.el.querySelector('.now-line');
     var now = App.now();
-    if (line) { line.style.top = y(now) + 'px'; line.querySelector('span').textContent = App.fmt.time(now, false); }
+    if (line) { line.style.top = y(now) + 'px'; line.querySelector('span').textContent = App.fmt.time(now); }
   });
   App.on('time', function () { V.date = App.dayStart(App.now()); V.scroll = null; });
 })();

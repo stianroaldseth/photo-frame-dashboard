@@ -2,6 +2,8 @@
 // Everything is relative to "today" in Copenhagen so the demo always looks current.
 import { cphDate, cphAt, addDays, weekday, isoWeek, WEEKDAYS_DA, TZ } from './time.js';
 import { family } from './family.js';
+import { parseWeather } from './sources/weather.js';
+import { parseRecords, summarize } from './sources/electricity.js';
 
 const iso = (ymd, hm) => cphAt(ymd, hm).toISOString();
 const isWeekend = (ymd) => [0, 6].includes(weekday(ymd));
@@ -68,38 +70,50 @@ export function calendar(now = new Date()) {
   };
 }
 
-export function weather(now = new Date()) {
-  const today = cphDate(now);
+// Weather and prices go through the real parsers, fed with payloads in the sources' formats,
+// so mock and live data always have the same shape.
+export function openMeteoSample(now = new Date()) {
+  const today = cphDate(now), tomorrow = addDays(today, 1);
   const temps = [7, 7, 6, 6, 6, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 12, 11, 10, 9, 9, 8, 8, 7, 7];
   const rain = [0, 0, 0, 0, 0, 0, 0, 10, 20, 10, 5, 5, 10, 20, 30, 60, 70, 50, 20, 10, 0, 0, 0, 0];
-  const hourly = temps.map((t, h) => ({
-    time: iso(today, String(h).padStart(2, '0') + ':00'),
-    temp: t, precipProb: rain[h], precip: rain[h] >= 50 ? 0.8 : 0, wind: 5 + (h % 6), code: rain[h] >= 50 ? 61 : 3,
-  }));
+  const time = [], hourly = { temperature_2m: [], precipitation_probability: [], precipitation: [], weather_code: [], wind_speed_10m: [], wind_gusts_10m: [], is_day: [] };
+  for (const day of [today, tomorrow]) {
+    temps.forEach((t, h) => {
+      time.push(`${day}T${String(h).padStart(2, '0')}:00`);
+      hourly.temperature_2m.push(t);
+      hourly.precipitation_probability.push(rain[h]);
+      hourly.precipitation.push(rain[h] >= 50 ? 0.8 : 0);
+      hourly.weather_code.push(rain[h] >= 50 ? 61 : h > 9 && h < 14 ? 2 : 3);
+      hourly.wind_speed_10m.push(4 + (h % 6));
+      hourly.wind_gusts_10m.push(8 + (h % 6));
+      hourly.is_day.push(h >= 8 && h < 18 ? 1 : 0);
+    });
+  }
   return {
-    location: 'Birkerød',
-    now: { temp: 11, feelsLike: 9, code: 3, wind: 6, gust: 11, precip: 0 },
-    today: { min: 6, max: 13, precipSum: 2.4, code: 61 },
-    hourly,
-    commute: {
-      morning: { from: '07:00', to: '09:00', verdict: 'good', temp: 8, wind: 7, precipProb: 20, text: 'Fint cykelvejr' },
-      afternoon: { from: '15:00', to: '17:00', verdict: 'bad', temp: 12, wind: 9, precipProb: 70, text: 'Regn – tag regntøj' },
-    },
+    current: { temperature_2m: 11, apparent_temperature: 9, precipitation: 0, weather_code: 3, wind_speed_10m: 6, wind_gusts_10m: 11, is_day: 1 },
+    hourly: { time, ...hourly },
+    daily: { time: [today, tomorrow], temperature_2m_max: [13, 12], temperature_2m_min: [6, 5], precipitation_sum: [2.4, 1.1], weather_code: [61, 61] },
   };
 }
 
-export function electricity(now = new Date()) {
+export function weather(now = new Date()) {
+  return parseWeather(openMeteoSample(now), now);
+}
+
+// DayAheadPrices-style records: 15-minute slots, DKK/MWh, cheap at night, peak 17–20.
+export function dayAheadSample(now = new Date()) {
   const today = cphDate(now);
-  // DKK/kWh incl. typical shape: cheap at night, peak 17–20.
   const shape = [1.2, 1.1, 1.0, 0.9, 0.9, 1.0, 1.4, 2.0, 2.1, 1.8, 1.5, 1.3, 1.2, 1.2, 1.3, 1.6, 2.2, 3.1, 3.4, 2.8, 2.0, 1.7, 1.5, 1.3];
-  const hours = [0, 1].flatMap((d) => shape.map((p, h) => ({
-    start: iso(addDays(today, d), String(h).padStart(2, '0') + ':00'),
-    price: Math.round((p + d * 0.1) * 100) / 100,
+  const records = [];
+  [0, 1].forEach((d) => shape.forEach((p, h) => [0, 15, 30, 45].forEach((m, q) => {
+    const t = cphAt(addDays(today, d), `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    records.push({ TimeUTC: t.toISOString().slice(0, 19), PriceArea: 'DK2', DayAheadPriceDKK: (p + d * 0.1) * 1000 + q * 20 });
   })));
-  return {
-    area: 'DK2', unit: 'DKK/kWh', includesTariffs: false, hours,
-    cheapest: { start: iso(addDays(today, 1), '02:00'), end: iso(addDays(today, 1), '05:00'), avgPrice: 1.03, hours: 3 },
-  };
+  return { records };
+}
+
+export function electricity(now = new Date()) {
+  return summarize(parseRecords(dayAheadSample(now).records), { now, chargeHours: 3, dataset: 'mock' });
 }
 
 export function birthdays(now = new Date()) {

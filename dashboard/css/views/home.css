@@ -108,3 +108,28 @@
 .h-st-row span { color: var(--ink-2); }
 .h-st-row.is-warn { color: #B45F00; font-weight: 800; }
 .h-st-row.is-warn span { color: inherit; }
+
+/* ---- phase 4: Danish clock + week, bike commute, electricity, stale marker */
+.h-date { display: flex; align-items: baseline; }
+.h-week { margin-left: auto; font-family: var(--sans); font-size: 20px; font-weight: 800; font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.h-wx-top { position: relative; }
+.h-wx-commute { display: flex; align-items: center; gap: 8px; margin: 8px 0 8px; min-height: 30px; }
+.h-cm { display: flex; align-items: baseline; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.h-cm small { font-size: 13px; font-weight: 700; opacity: .8; }
+.h-cm b { font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums; }
+.h-cm--good { background: rgb(0 163 108 / .16); color: #006B47; }
+.h-cm--meh { background: rgb(255 149 0 / .2); color: #8A4B00; }
+.h-cm--bad { background: rgb(229 38 30 / .14); color: #A3140E; }
+
+.h-power { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.h-power .label b { font-size: 18px; color: var(--ink); }
+.h-pw-bars { flex: 1; display: flex; align-items: flex-end; gap: 3px; min-height: 0; padding-bottom: 16px; }
+.h-pw-bars i { position: relative; flex: 1; background: var(--line); border-radius: 3px 3px 0 0; }
+.h-pw-bars i.is-cheap { background: var(--ok); }
+.h-pw-bars i.is-now { background: var(--ink); }
+.h-pw-bars i span { position: absolute; top: 100%; left: 0; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--mute); font-style: normal; }
+.h-pw-tip { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.h-pw-tip b { font-weight: 800; }
+
+.stale { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; padding: 1px 8px; border-radius: 999px; background: var(--paper-2); color: var(--mute); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; vertical-align: middle; }
+.h-wx-top .stale { position: absolute; top: 0; right: 0; }

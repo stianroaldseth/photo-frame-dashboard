@@ -15,9 +15,9 @@
     var d = parseDate(p), now = App.now();
     var years = now.getFullYear() - d.getFullYear();
     var onThisDay = d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-    var kicker = onThisDay ? years + (years === 1 ? ' year' : ' years') + ' ago today' : (years > 0 ? years + (years === 1 ? ' year ago' : ' years ago') : 'This year');
+    var kicker = onThisDay ? 'i dag for ' + years + ' år siden' : (years > 0 ? years + ' år siden' : 'I år');
     return {
-      date: App.fmt.month(d) + ' ' + d.getDate() + ', ' + d.getFullYear(),
+      date: d.getDate() + '. ' + App.fmt.month(d) + ' ' + d.getFullYear(),
       monthYear: App.fmt.month(d) + ' ' + d.getFullYear(),
       kicker: kicker, onThisDay: onThisDay, place: p.place, from: App.person(p.from)
     };

@@ -18,7 +18,7 @@ before(async () => {
   writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Dash</title>');
   mkdirSync(join(dist, 'assets'));
   writeFileSync(join(dist, 'assets', 'app-abc.js'), 'console.log(1)');
-  const app = createApp({ token: TOKEN, widgets: createWidgets(), distDir: dist });
+  const app = createApp({ token: TOKEN, widgets: createWidgets({ MOCK: '1' }), distDir: dist });
   server = createServer((q, s) => app(q, s));
   await new Promise((r) => server.listen(0, r));
   base = `http://localhost:${server.address().port}`;

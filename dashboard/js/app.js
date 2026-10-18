@@ -26,43 +26,45 @@
   App.sameDay = function (a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); };
   App.isNight = function () { var h = App.now().getHours(); return h >= 22 || h < 6; };
 
-  var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  var MON_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  // Danish locale: 24h clock, dd.mm dates, Danish names. The tablet runs in Europe/Copenhagen.
+  var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
+  var MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+  var MON_SHORT = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
   App.fmt = {
-    time: function (d, ampm) {
-      var h = d.getHours(), m = d.getMinutes();
-      var s = (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m;
-      return ampm === false ? s : s + ' ' + (h >= 12 ? 'PM' : 'AM');
-    },
-    // "4 PM", "3:45 PM"
-    hour: function (d) {
-      var h = d.getHours(), m = d.getMinutes();
-      return (h % 12 || 12) + (m ? ':' + (m < 10 ? '0' : '') + m : '') + ' ' + (h >= 12 ? 'PM' : 'AM');
-    },
-    ampm: function (d) { return d.getHours() >= 12 ? 'PM' : 'AM'; },
-    range: function (a, b) {
-      var same = App.fmt.ampm(a) === App.fmt.ampm(b);
-      return (same ? App.fmt.time(a, false) : App.fmt.time(a)) + ' – ' + App.fmt.time(b);
-    },
+    // "07:05". The second argument is ignored (kept from the 12h version's call sites).
+    time: function (d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); },
+    // "kl. 16", "kl. 15:45"
+    hour: function (d) { return 'kl. ' + pad(d.getHours()) + (d.getMinutes() ? ':' + pad(d.getMinutes()) : ''); },
+    range: function (a, b) { return App.fmt.time(a) + '–' + App.fmt.time(b); },
     day: function (d) { return DAYS[d.getDay()]; },
     dayShort: function (d) { return DAYS[d.getDay()].slice(0, 3); },
     month: function (d) { return MONTHS[d.getMonth()]; },
     monthShort: function (d) { return MON_SHORT[d.getMonth()]; },
+    ddmm: function (d) { return pad(d.getDate()) + '.' + pad(d.getMonth() + 1); },
+    // ISO 8601 week number ("uge")
+    week: function (d) {
+      var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+      return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7);
+    },
+    // 1.234 → "1,23"
+    num: function (x, digits) { return x == null ? '–' : x.toFixed(digits == null ? 0 : digits).replace('.', ','); },
     mins: function (m) {
       m = Math.max(0, Math.round(m));
       if (m < 60) return m + ' min';
       var h = Math.floor(m / 60), r = m % 60;
-      return h + ' hr' + (r ? ' ' + r + ' min' : '');
+      return h + ' t' + (r ? ' ' + r + ' min' : '');
     },
     rel: function (d) {
       var t = App.dayStart(App.now()), x = App.dayStart(d), diff = Math.round((x - t) / 864e5);
-      if (diff === 0) return 'Today';
-      if (diff === 1) return 'Tomorrow';
-      if (diff === -1) return 'Yesterday';
+      if (diff === 0) return 'I dag';
+      if (diff === 1) return 'I morgen';
+      if (diff === -1) return 'I går';
       return DAYS[d.getDay()];
     }
   };
+  App.cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
   App.esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
   // ------------------------------------------------------------ icons + people
@@ -128,33 +130,49 @@
     for (var i = 0; i < D.routines.length; i++) if (h >= D.routines[i].from && h < D.routines[i].to) return D.routines[i];
     return D.routines[2];
   };
-  App.weatherNow = function () {
-    var W = D.weather, h = App.now().getHours();
-    var rainAt = -1;
-    for (var i = h; i < 24; i++) if (W.p[i] >= 50) { rainAt = i; break; }
-    var summary, advice;
-    if (rainAt === h) {
-      var stop = h; while (stop < 24 && W.p[stop] >= 50) stop++;
-      summary = 'Rain until ' + App.fmt.hour(new Date(2000, 0, 1, stop));
-      advice = 'Umbrella weather';
-    } else if (rainAt > -1) {
-      summary = 'Rain from ' + App.fmt.hour(new Date(2000, 0, 1, rainAt));
-      var soccer = App.timedOn(App.now()).filter(function (e) { return /soccer/i.test(e.title) && e.start > App.now(); })[0];
-      advice = soccer ? 'Pack a rain jacket for soccer' : 'Grab a rain jacket';
-    } else {
-      summary = W.t[h] < 12 ? 'Clear and cool' : 'Dry all day';
-      advice = W.t[h] < 12 ? 'Jacket weather' : 'Light layers';
+  // Weather from /api/weather (js/api.js stores the latest envelope in App.feeds.weather).
+  var WX = [ // WMO weather code → icon + Danish label
+    [[0], 'sun', 'Klart'], [[1], 'partly', 'Let skyet'], [[2], 'partly', 'Delvist skyet'], [[3], 'cloud', 'Overskyet'],
+    [[45, 48], 'fog', 'Tåge'], [[51, 53, 55, 56, 57], 'rain', 'Støvregn'], [[61, 63, 65, 66, 67], 'rain', 'Regn'],
+    [[71, 73, 75, 77], 'snow', 'Sne'], [[80, 81, 82], 'rain', 'Regnbyger'], [[85, 86], 'snow', 'Snebyger'], [[95, 96, 99], 'storm', 'Torden']
+  ];
+  App.wxCond = function (code, isDay) {
+    for (var i = 0; i < WX.length; i++) if (WX[i][0].indexOf(code) > -1) {
+      var icon = WX[i][1];
+      if (isDay === false && (icon === 'sun' || icon === 'partly')) icon = 'moon';
+      return { icon: icon, label: WX[i][2] };
     }
-    var labels = { sun: 'Sunny', moon: 'Clear', partly: 'Partly cloudy', cloud: 'Overcast', rain: 'Rain' };
-    return { temp: W.t[h], cond: W.c[h], label: labels[W.c[h]], hi: W.hi, lo: W.lo, summary: summary, advice: advice, hour: h };
+    return { icon: 'cloud', label: '' };
+  };
+  function wx() { var f = App.feeds && App.feeds.weather; return f && f.data; }
+  function upcoming(W) { var from = App.now() - 36e5; return W.hourly.filter(function (h) { return new Date(h.time) > from; }); }
+  App.weatherNow = function () {
+    var W = wx();
+    if (!W) return { temp: '–', cond: 'cloud', label: '', hi: '–', lo: '–', summary: 'Henter vejret …', commute: null };
+    var c = App.wxCond(W.now.code, W.now.isDay);
+    var today = App.dayStart(App.now()), end = App.addDays(today, 1);
+    var rest = upcoming(W).filter(function (h) { return new Date(h.time) < end; });
+    var wet = function (h) { return h.precipProb >= 50 && h.precip > 0; };
+    var summary;
+    if (rest.length && wet(rest[0])) {
+      var i = 0; while (i < rest.length && wet(rest[i])) i++;
+      summary = i < rest.length ? 'Regn til ' + App.fmt.hour(new Date(rest[i].time)) : 'Regn resten af dagen';
+    } else {
+      var first = rest.filter(wet)[0];
+      summary = first ? 'Regn fra ' + App.fmt.hour(new Date(first.time)) : 'Tørt resten af dagen';
+    }
+    return {
+      temp: Math.round(W.now.temp), cond: c.icon, label: c.label, hi: Math.round(W.today.max), lo: Math.round(W.today.min),
+      feels: Math.round(W.now.feelsLike), wind: Math.round(W.now.wind), summary: summary, commute: W.commute
+    };
   };
   App.hourly = function (count) {
-    var W = D.weather, h = App.now().getHours(), out = [];
-    for (var i = 0; i < count; i++) {
-      var x = (h + i) % 24;
-      out.push({ h: x, t: W.t[x], c: W.c[x], p: W.p[x], label: i === 0 ? 'Now' : ((x % 12 || 12) + (x >= 12 ? 'p' : 'a')) });
-    }
-    return out;
+    var W = wx();
+    if (!W) return [];
+    return upcoming(W).slice(0, count).map(function (h, i) {
+      var d = new Date(h.time);
+      return { t: Math.round(h.temp), c: App.wxCond(h.code, h.isDay).icon, p: h.precipProb, label: i === 0 ? 'Nu' : pad(d.getHours()) };
+    });
   };
 
   // ------------------------------------------------------------ router
@@ -319,7 +337,7 @@
     App.emit('second', n);
     if (n.getMinutes() !== lastMin) {
       lastMin = n.getMinutes();
-      $('#railClock').innerHTML = '<b>' + App.fmt.time(n, false) + '</b><span>' + App.fmt.ampm(n) + '</span>';
+      $('#railClock').innerHTML = '<b>' + App.fmt.time(n) + '</b><span>uge ' + App.fmt.week(n) + '</span>';
       App.emit('minute', n);
     }
     onIdleTick();
@@ -327,7 +345,6 @@
 
   // ------------------------------------------------------------ boot
   App.start = function () {
-    App.setTime(15, 18); // demo default: a busy weekday afternoon
     fit();
     window.addEventListener('resize', fit);
     // Switch tabs the instant a finger lands (pointerdown), not on release. Keyboard "clicks"
@@ -347,7 +364,6 @@
     setInterval(tick, 1000);
     App.emit('ready');
     refreshStale(1500);
-    setTimeout(function () { App.toast('Tip: press and hold the <b>clock</b> in the sidebar for demo controls', { ms: 6000, icon: 'bolt' }); }, 1200);
   };
   document.addEventListener('DOMContentLoaded', function () { App.start(); });
 })();

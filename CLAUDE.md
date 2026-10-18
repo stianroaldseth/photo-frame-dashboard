@@ -65,4 +65,6 @@ all logic lives in this web app, hosted on Railway.
 
 - [x] Phase 1 — Explore
 - [x] Phase 2 — Clean up. Decision: keep all existing views for now (see ROD.md).
-- [ ] Phase 3 — Backend (built, awaiting Stian's OK)
+- [x] Phase 3 — Backend
+- [ ] Phase 4 — Widgets. Done: 1 clock, 5 weather, 6 electricity. Waiting on Stian for kids'
+  names, iCal addresses and tagging convention (widgets 2, 3, 4, 7). Photos (9) needs a source.

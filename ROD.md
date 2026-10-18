@@ -2,6 +2,44 @@
 
 Newest first. Each entry: date, decision, why, and alternatives considered.
 
+## 2026-10-18 — Electricity: raw DK2 spot price, 15-minute data averaged to hours
+
+**Decision:** use Energi Data Service `DayAheadPrices` (15-minute slots since 1 Oct 2025) for
+DK2, averaged to hourly bars; fall back to the old hourly `Elspotprices` dataset. Show DKK/kWh
+without VAT, taxes or grid tariffs, labelled as spot price. Cheapest charging window = cheapest
+run of `CHARGE_HOURS` (default 3) consecutive hours from now on.
+**Why:** free, no key; hourly bars stay readable from 3 m; spot alone is enough to pick *when* to
+charge. **Later option:** add Radius grid tariffs + taxes + VAT for the real price per kWh.
+
+## 2026-10-18 — Bike-commute verdicts computed on the server
+
+**Decision:** for 07–09 and 15–17 the server rates Fint / Ok / Dårligt from rain amount and
+chance, wind, gusts, temperature and snow (thresholds in `server/sources/weather.js`). Once a
+window has passed, it shows tomorrow's.
+**Why:** one place to tune the rules; the wall shows one short word per window.
+
+## 2026-10-18 — Danish locale in the frontend; clock follows the tablet's timezone
+
+**Decision:** 24h times, dd.mm dates, Danish day and month names, ISO week numbers, Danish UI
+labels on the home screen, rail and night/ambient screens. The on-screen clock uses the
+device's timezone (the tablet is set to Copenhagen); the server always computes in
+Europe/Copenhagen. Views still to be reworked (calendar, chores, shopping, etc.) keep some
+English labels until phase 5.
+**Why:** simplest correct option for a tablet in Denmark. A desktop preview from another
+timezone shows that timezone's clock.
+
+## 2026-10-18 — Electricity card replaces the chores tile on the home screen
+
+**Decision:** the home screen's chores-progress tile is now the electricity card. The Chores
+view itself is still in the rail.
+**Why:** electricity is on the widget list, chores are not; the tile had the right size.
+
+## 2026-10-18 — Last-known data also cached in the browser
+
+**Decision:** `js/api.js` keeps each widget's last good response in `localStorage` and shows it
+with a small "data fra hh:mm" marker when the server or network fails.
+**Why:** covers Wi-Fi drops and server restarts (the server cache is in memory only).
+
 ## 2026-10-18 — Backend: plain Node, no framework, shared with the dev server
 
 **Decision:** `dashboard/server/` uses only Node built-ins (`node:http`, `node:test`). The same

@@ -8,8 +8,9 @@ all logic lives in this web app, hosted on Railway.
 
 - Family in Birkerød (3460), Rudersdal Kommune, Denmark. Electricity price area **DK2**.
 - Adults: **Stian** and **Ulrika**.
-- Kids: **[daughter's name]**, age 5 (can't read much yet), and **[youngest's name]**, age 2.
-  (Names to be filled in by Stian.)
+- Kids: daughter, age 5 (can't read much yet) = `kid1`, and youngest, age 2 = `kid2`. Their names
+  are set in the env vars `KID1_NAME` / `KID2_NAME` (local `.env`, Railway variables) and must
+  **not** be committed: this repo is public.
 - Daily logistics: drop-off/pick-up at **Pilegården**; Stian commutes ~8 km by cargo bike/car.
 - House has solar PV, a home EV charger and a plug-in hybrid car.
 

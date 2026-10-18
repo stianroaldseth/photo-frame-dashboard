@@ -63,4 +63,5 @@ all logic lives in this web app, hosted on Railway.
 
 ## Phase status
 
-- [ ] Phase 1 — Explore (in progress)
+- [x] Phase 1 — Explore
+- [ ] Phase 2 — Clean up (in progress). Decision: keep all existing views for now (see ROD.md).

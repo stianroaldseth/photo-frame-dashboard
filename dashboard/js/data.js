@@ -1,110 +1,21 @@
-// Mock data for the prototype. Everything is relative to "today" so the demo always looks current.
+// Frontend mock data for the views not yet backed by the API (chores, shopping, home control,
+// agents, photos). Calendar people and events start empty and are filled from /api/calendar.
 window.DATA = (function () {
   var base = new Date();
   base.setHours(0, 0, 0, 0);
 
-  function at(d, hm) {
-    var p = hm.split(':');
-    var x = new Date(base);
-    x.setDate(x.getDate() + d);
-    x.setHours(+p[0], +p[1], 0, 0);
-    return x;
-  }
-  var n = 0;
-  function ev(d, s, e, title, people, extra) {
-    return Object.assign({ id: 'e' + (++n), start: at(d, s), end: at(d, e), title: title, people: people }, extra || {});
-  }
-  function allDay(d, days, title, people, extra) {
-    return Object.assign({ id: 'e' + (++n), allDay: true, start: at(d, '00:00'), end: at(d + days, '00:00'), title: title, people: people }, extra || {});
-  }
-
-  var ALL = ['alex', 'jordan', 'maya', 'otto'];
-
+  // People and events come from /api/calendar (js/api.js replaces these on the first response).
+  var ALL = ['stian', 'ulrika', 'kid1', 'kid2'];
   var people = [
-    { id: 'alex', name: 'Wes', color: '#2D5BFF', rgb: '45 91 255', ink: '#FFFFFF', home: false, status: 'Driving home', eta: 12 },
-    { id: 'jordan', name: 'Claudia', color: '#E4007C', rgb: '228 0 124', ink: '#FFFFFF', home: false, status: 'At the office' },
-    { id: 'maya', name: 'Buzzsaw', age: 10, color: '#00A36C', rgb: '0 163 108', ink: '#FFFFFF', home: true, status: 'Home' },
-    { id: 'otto', name: 'Skidmark', age: 6, color: '#FFB000', rgb: '255 176 0', ink: '#111111', home: true, status: 'Home' }
+    { id: 'stian', name: 'Stian', color: '#2D5BFF', rgb: '45 91 255', ink: '#FFFFFF', adult: true },
+    { id: 'ulrika', name: 'Ulrika', color: '#E4007C', rgb: '228 0 124', ink: '#FFFFFF', adult: true },
+    { id: 'kid1', name: 'Barn 1', age: 5, color: '#00A36C', rgb: '0 163 108', ink: '#FFFFFF' },
+    { id: 'kid2', name: 'Barn 2', age: 2, color: '#FFB000', rgb: '255 176 0', ink: '#111111' }
   ];
-  var family = { id: 'family', name: 'Family', color: '#111111', rgb: '17 17 17', ink: '#FFFFFF' };
-
-  // ---------------------------------------------------------------- calendar
-  var events = [
-    // Today
-    allDay(0, 1, 'Pajama Day at school', ['otto']),
-    allDay(0, 1, 'Garbage + recycling night', ALL),
-    ev(0, '07:00', '07:45', 'Gym', ['jordan'], { loc: 'Iron Works' }),
-    ev(0, '08:15', '08:40', 'School drop-off', ['alex'], { travel: 10, loc: 'Parkdale Elementary' }),
-    ev(0, '09:30', '10:30', 'Design review', ['jordan'], { loc: 'Office · Room 4B' }),
-    ev(0, '12:00', '12:45', 'Dentist', ['maya', 'jordan'], { travel: 15, loc: 'Bright Smiles Dental' }),
-    ev(0, '13:00', '14:00', 'Lunch with Sam', ['alex'], { loc: 'Café Rustica' }),
-    ev(0, '15:45', '16:30', 'Piano lesson', ['otto'], { travel: 12, loc: "Ms. Park's Studio", notes: 'Bring the blue theory book.' }),
-    ev(0, '16:05', '16:30', 'Drive Buzzsaw to soccer', ['jordan']),
-    ev(0, '16:25', '16:50', 'Pick up Skidmark', ['jordan'], { loc: "Ms. Park's Studio" }),
-    ev(0, '16:30', '18:00', 'Soccer practice', ['maya'], { travel: 20, loc: 'Lakeshore Fields', notes: 'Shin guards + water bottle. Rain likely — pack a jacket.' }),
-    ev(0, '17:00', '17:30', 'Parent–teacher call', ['alex', 'jordan'], { loc: 'Zoom' }),
-    ev(0, '18:30', '19:30', "Dinner at Nonna's", ALL, { travel: 20, loc: "Nonna's", notes: 'Bring the lemon cake.' }),
-    ev(0, '20:00', '20:30', 'Bath + books', ['otto']),
-
-    // Tomorrow → +6
-    allDay(1, 3, 'Wes in Montréal', ['alex'], { loc: 'Hotel William Gray' }),
-    ev(1, '07:00', '07:45', 'Gym', ['jordan'], { loc: 'Iron Works' }),
-    ev(1, '08:15', '08:40', 'School drop-off', ['jordan'], { travel: 10 }),
-    ev(1, '10:30', '11:15', 'Vet — Biscuit', ['jordan'], { travel: 10, loc: 'Riverdale Animal Clinic' }),
-    ev(1, '15:30', '16:30', 'Art club', ['maya'], { loc: 'School' }),
-    ev(1, '16:00', '18:00', 'Playdate with Leo', ['otto'], { travel: 8, loc: "Leo's house" }),
-    ev(1, '19:00', '21:00', 'Book club', ['jordan'], { travel: 10, loc: "Priya's" }),
-
-    ev(2, '09:00', '14:00', 'Science Centre trip', ['otto'], { loc: 'Ontario Science Centre' }),
-    ev(2, '13:00', '13:45', 'Haircuts', ['maya', 'otto'], { travel: 10, loc: 'Snip Snip Kids' }),
-    ev(2, '16:30', '18:00', 'Soccer practice', ['maya'], { travel: 20, loc: 'Lakeshore Fields' }),
-    ev(2, '18:00', '19:30', 'Pizza night', ALL),
-
-    ev(3, '10:00', '10:45', 'Swim lessons', ['otto'], { travel: 12, loc: 'Wellesley Pool' }),
-    ev(3, '11:00', '12:00', 'Grocery run', ['jordan']),
-    ev(3, '13:00', '15:30', "Zoe's birthday party", ['maya'], { travel: 15, loc: 'Pottery Place' }),
-    ev(3, '19:00', '21:00', 'Movie night', ALL),
-
-    ev(4, '10:30', '12:00', 'Sunday brunch', ALL, { travel: 15, loc: 'Lady Marmalade' }),
-    ev(4, '17:05', '18:20', 'Flight home · AC 418', ['alex'], { loc: 'YUL → YYZ' }),
-
-    ev(5, '07:00', '07:45', 'Gym', ['jordan']),
-    ev(5, '15:45', '16:30', 'Piano lesson', ['otto'], { travel: 12 }),
-    ev(5, '16:30', '18:00', 'Soccer practice', ['maya'], { travel: 20 }),
-    ev(5, '19:00', '20:00', 'Yoga', ['jordan']),
-
-    allDay(6, 2, 'Grandma visits', ALL),
-    ev(6, '09:00', '09:45', 'Dentist', ['otto'], { travel: 15, loc: 'Bright Smiles Dental' }),
-    ev(6, '16:30', '18:00', 'Soccer practice', ['maya'], { travel: 20 })
-  ];
-
-  // Background recurring events so the month view has texture
-  for (var d = -40; d <= 45; d++) {
-    if (d >= 0 && d <= 6) continue;
-    var dow = new Date(at(d, '00:00')).getDay();
-    if (dow === 1) events.push(ev(d, '15:45', '16:30', 'Piano lesson', ['otto']));
-    if (dow === 2 || dow === 4) events.push(ev(d, '16:30', '18:00', 'Soccer practice', ['maya']));
-    if (dow === 3) events.push(ev(d, '19:00', '20:00', 'Yoga', ['jordan']));
-    if (dow === 6) events.push(ev(d, '10:00', '10:45', 'Swim lessons', ['otto']));
-    if (dow === 0) events.push(ev(d, '17:30', '19:30', "Dinner at Nonna's", ALL));
-    if (dow === 5 && d % 2 === 0) events.push(ev(d, '18:00', '19:30', 'Pizza night', ALL));
-    if (d % 9 === 0) events.push(ev(d, '12:00', '13:00', 'Lunch meeting', ['alex']));
-    if (d % 11 === 0) events.push(ev(d, '09:00', '10:00', 'Doctor', ['jordan']));
-  }
-  events.push(allDay(12, 1, "Buzzsaw's birthday 🎂", ALL));
-  events.push(allDay(-8, 3, 'Cottage weekend', ALL));
-
-  // Extra events for the "overloaded day" demo
-  var busyExtras = [
-    ev(0, '10:00', '11:00', 'Plumber window', ['jordan']),
-    ev(0, '11:00', '11:30', 'Call with bank', ['alex']),
-    ev(0, '14:30', '15:30', 'Library volunteer', ['jordan']),
-    ev(0, '15:30', '16:00', 'Snack prep', ['maya']),
-    ev(0, '16:00', '16:45', 'Math tutor', ['otto']),
-    ev(0, '16:15', '17:00', 'Swim make-up', ['otto'], { travel: 10 }),
-    ev(0, '19:45', '20:30', 'Bake sale prep', ['maya', 'jordan']),
-    ev(0, '20:30', '21:30', 'Hockey', ['alex'], { travel: 15 })
-  ];
+  var family = { id: 'family', name: 'Familien', color: '#111111', rgb: '17 17 17', ink: '#FFFFFF' };
+  var n = 0; // ids for events added on the tablet
+  var events = [];
+  var busyExtras = [];
 
   // ---------------------------------------------------------------- chores
   var routines = [
@@ -117,45 +28,45 @@ window.DATA = (function () {
     return Object.assign({ id: 'c' + (++cid), r: r, who: who, title: title, emoji: emoji, stars: stars, done: !!done }, extra || {});
   }
   var chores = [
-    chore('morning', 'maya', 'Make bed', '🛏️', 1, true),
-    chore('morning', 'maya', 'Brush teeth', '🪥', 1, true),
-    chore('morning', 'maya', 'Pack backpack', '🎒', 1, true),
-    chore('morning', 'otto', 'Make bed', '🛏️', 1, true),
-    chore('morning', 'otto', 'Brush teeth', '🪥', 1, true),
-    chore('morning', 'otto', 'Get dressed', '👕', 1, false),
-    chore('morning', 'alex', 'School drop-off', '🚗', 0, true),
-    chore('morning', 'jordan', 'Pack lunches', '🥪', 0, true),
+    chore('morning', 'kid1', 'Make bed', '🛏️', 1, true),
+    chore('morning', 'kid1', 'Brush teeth', '🪥', 1, true),
+    chore('morning', 'kid1', 'Pack backpack', '🎒', 1, true),
+    chore('morning', 'kid2', 'Make bed', '🛏️', 1, true),
+    chore('morning', 'kid2', 'Brush teeth', '🪥', 1, true),
+    chore('morning', 'kid2', 'Get dressed', '👕', 1, false),
+    chore('morning', 'stian', 'School drop-off', '🚗', 0, true),
+    chore('morning', 'ulrika', 'Pack lunches', '🥪', 0, true),
     chore('morning', 'any', 'Feed Biscuit', '🐶', 1, true),
 
-    chore('after', 'maya', 'Unpack lunchbox', '🥪', 1, true),
-    chore('after', 'maya', 'Homework', '📚', 2, false),
-    chore('after', 'maya', 'Pack soccer bag', '⚽', 1, false),
-    chore('after', 'otto', 'Unpack lunchbox', '🥪', 1, true),
-    chore('after', 'otto', 'Read for 20 min', '📖', 2, false),
-    chore('after', 'otto', 'Practice piano', '🎹', 2, false),
-    chore('after', 'otto', 'Tidy the Lego', '🧱', 1, false),
-    chore('after', 'alex', 'Take out recycling', '♻️', 0, false, { overdue: true }),
-    chore('after', 'alex', 'Call the plumber', '☎️', 0, true),
-    chore('after', 'jordan', 'Fold laundry', '🧺', 0, false),
-    chore('after', 'jordan', 'Order Zoe’s gift', '🎁', 0, true),
+    chore('after', 'kid1', 'Unpack lunchbox', '🥪', 1, true),
+    chore('after', 'kid1', 'Homework', '📚', 2, false),
+    chore('after', 'kid1', 'Pack soccer bag', '⚽', 1, false),
+    chore('after', 'kid2', 'Unpack lunchbox', '🥪', 1, true),
+    chore('after', 'kid2', 'Read for 20 min', '📖', 2, false),
+    chore('after', 'kid2', 'Practice piano', '🎹', 2, false),
+    chore('after', 'kid2', 'Tidy the Lego', '🧱', 1, false),
+    chore('after', 'stian', 'Take out recycling', '♻️', 0, false, { overdue: true }),
+    chore('after', 'stian', 'Call the plumber', '☎️', 0, true),
+    chore('after', 'ulrika', 'Fold laundry', '🧺', 0, false),
+    chore('after', 'ulrika', 'Order Zoe’s gift', '🎁', 0, true),
     chore('after', 'any', 'Water the plants', '🪴', 1, false),
     chore('after', 'any', 'Empty dishwasher', '🍽️', 2, false),
     chore('after', 'any', 'Walk Biscuit', '🐕', 2, true),
 
-    chore('evening', 'maya', 'Set the table', '🍴', 1, false),
-    chore('evening', 'maya', 'Lay out clothes', '👕', 1, false),
-    chore('evening', 'maya', 'Shower', '🚿', 1, false),
-    chore('evening', 'otto', 'Clear plates', '🍽️', 1, false),
-    chore('evening', 'otto', 'Bath', '🛁', 1, false),
-    chore('evening', 'otto', 'Lay out clothes', '👕', 1, false),
-    chore('evening', 'alex', 'Lock up', '🔐', 0, false),
-    chore('evening', 'jordan', 'Run dishwasher', '🫧', 0, false),
+    chore('evening', 'kid1', 'Set the table', '🍴', 1, false),
+    chore('evening', 'kid1', 'Lay out clothes', '👕', 1, false),
+    chore('evening', 'kid1', 'Shower', '🚿', 1, false),
+    chore('evening', 'kid2', 'Clear plates', '🍽️', 1, false),
+    chore('evening', 'kid2', 'Bath', '🛁', 1, false),
+    chore('evening', 'kid2', 'Lay out clothes', '👕', 1, false),
+    chore('evening', 'stian', 'Lock up', '🔐', 0, false),
+    chore('evening', 'ulrika', 'Run dishwasher', '🫧', 0, false),
     chore('evening', 'any', 'Wipe counters', '🧽', 1, false),
     chore('evening', 'any', 'Garbage to curb', '🗑️', 2, false)
   ];
-  var stars = { maya: 42, otto: 57 };
+  var stars = { kid1: 42, kid2: 57 };
   // Mon..Sun, 1 = all chores done, 0 = missed, null = future
-  var week = { maya: [1, 1, 0, 1, 1, 0, 1], otto: [1, 0, 1, 1, 1, 1, 0] };
+  var week = { kid1: [1, 1, 0, 1, 1, 0, 1], kid2: [1, 0, 1, 1, 1, 1, 0] };
 
   // ---------------------------------------------------------------- shopping
   var stores = [{ id: 'grocer', name: 'FreshCo' }, { id: 'costco', name: 'Costco' }];
@@ -261,26 +172,26 @@ window.DATA = (function () {
   var t = new Date(base);
   var mmdd = ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
   var photos = [
-    { seed: 'tofino-surf', o: 'l', date: '2021-' + mmdd, place: 'Tofino, BC', from: 'jordan', tag: 'tofino' },
-    { seed: 'cottage-dock', o: 'l', date: '2023-08-12', place: 'Lake of Bays', from: 'alex', tag: 'cottage' },
-    { seed: 'maya-kite', o: 'p', date: '2024-05-19', place: 'Humber Bay Park', from: 'jordan', tag: 'spring24' },
-    { seed: 'otto-kite', o: 'p', date: '2024-05-19', place: 'Humber Bay Park', from: 'alex', tag: 'spring24' },
-    { seed: 'autumn-walk', o: 'l', date: '2022-10-09', place: 'High Park', from: 'alex', tag: 'fall22' },
-    { seed: 'birthday-cake', o: 'p', date: '2025-10-12', place: 'Home', from: 'jordan', tag: 'bday25' },
-    { seed: 'candles-lit', o: 'p', date: '2025-10-12', place: 'Home', from: 'alex', tag: 'bday25' },
-    { seed: 'mountain-lake', o: 'l', date: '2019-' + mmdd, place: 'Banff, AB', from: 'alex', tag: 'banff' },
-    { seed: 'snow-day', o: 'l', date: '2024-01-21', place: 'Riverdale Hill', from: 'jordan', tag: 'winter24' },
-    { seed: 'beach-dunes', o: 'l', date: '2023-07-02', place: 'Sandbanks', from: 'maya', tag: 'sandbanks' },
-    { seed: 'city-night', o: 'l', date: '2022-12-18', place: 'Nathan Phillips Sq.', from: 'jordan', tag: 'xmas22' },
-    { seed: 'garden-bloom', o: 'p', date: '2025-06-08', place: 'Backyard', from: 'otto', tag: 'garden' },
-    { seed: 'tomato-haul', o: 'p', date: '2025-06-08', place: 'Backyard', from: 'maya', tag: 'garden' },
-    { seed: 'road-trip', o: 'l', date: '2024-08-04', place: 'Cabot Trail, NS', from: 'alex', tag: 'ns' },
-    { seed: 'campfire', o: 'l', date: '2024-08-06', place: 'Cape Breton', from: 'jordan', tag: 'ns' },
-    { seed: 'forest-path', o: 'l', date: '2020-09-26', place: 'Algonquin', from: 'alex', tag: 'algonquin' },
-    { seed: 'pancakes', o: 'p', date: '2026-03-14', place: 'Home', from: 'maya', tag: 'pancakes' },
-    { seed: 'sugar-shack', o: 'p', date: '2026-03-14', place: 'Sugar Shack', from: 'jordan', tag: 'pancakes' },
-    { seed: 'harbour-sail', o: 'l', date: '2025-07-19', place: 'Toronto Harbour', from: 'otto', tag: 'sail' },
-    { seed: 'pumpkins', o: 'l', date: '2025-10-25', place: "Chudleigh's", from: 'maya', tag: 'fall25' }
+    { seed: 'tofino-surf', o: 'l', date: '2021-' + mmdd, place: 'Tofino, BC', from: 'ulrika', tag: 'tofino' },
+    { seed: 'cottage-dock', o: 'l', date: '2023-08-12', place: 'Lake of Bays', from: 'stian', tag: 'cottage' },
+    { seed: 'maya-kite', o: 'p', date: '2024-05-19', place: 'Humber Bay Park', from: 'ulrika', tag: 'spring24' },
+    { seed: 'otto-kite', o: 'p', date: '2024-05-19', place: 'Humber Bay Park', from: 'stian', tag: 'spring24' },
+    { seed: 'autumn-walk', o: 'l', date: '2022-10-09', place: 'High Park', from: 'stian', tag: 'fall22' },
+    { seed: 'birthday-cake', o: 'p', date: '2025-10-12', place: 'Home', from: 'ulrika', tag: 'bday25' },
+    { seed: 'candles-lit', o: 'p', date: '2025-10-12', place: 'Home', from: 'stian', tag: 'bday25' },
+    { seed: 'mountain-lake', o: 'l', date: '2019-' + mmdd, place: 'Banff, AB', from: 'stian', tag: 'banff' },
+    { seed: 'snow-day', o: 'l', date: '2024-01-21', place: 'Riverdale Hill', from: 'ulrika', tag: 'winter24' },
+    { seed: 'beach-dunes', o: 'l', date: '2023-07-02', place: 'Sandbanks', from: 'kid1', tag: 'sandbanks' },
+    { seed: 'city-night', o: 'l', date: '2022-12-18', place: 'Nathan Phillips Sq.', from: 'ulrika', tag: 'xmas22' },
+    { seed: 'garden-bloom', o: 'p', date: '2025-06-08', place: 'Backyard', from: 'kid2', tag: 'garden' },
+    { seed: 'tomato-haul', o: 'p', date: '2025-06-08', place: 'Backyard', from: 'kid1', tag: 'garden' },
+    { seed: 'road-trip', o: 'l', date: '2024-08-04', place: 'Cabot Trail, NS', from: 'stian', tag: 'ns' },
+    { seed: 'campfire', o: 'l', date: '2024-08-06', place: 'Cape Breton', from: 'ulrika', tag: 'ns' },
+    { seed: 'forest-path', o: 'l', date: '2020-09-26', place: 'Algonquin', from: 'stian', tag: 'algonquin' },
+    { seed: 'pancakes', o: 'p', date: '2026-03-14', place: 'Home', from: 'kid1', tag: 'pancakes' },
+    { seed: 'sugar-shack', o: 'p', date: '2026-03-14', place: 'Sugar Shack', from: 'ulrika', tag: 'pancakes' },
+    { seed: 'harbour-sail', o: 'l', date: '2025-07-19', place: 'Toronto Harbour', from: 'kid2', tag: 'sail' },
+    { seed: 'pumpkins', o: 'l', date: '2025-10-25', place: "Chudleigh's", from: 'kid1', tag: 'fall25' }
   ];
 
   // ---------------------------------------------------------------- AI agent usage (CodexBar-style)

@@ -133,3 +133,22 @@
 
 .stale { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; padding: 1px 8px; border-radius: 999px; background: var(--paper-2); color: var(--mute); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; vertical-align: middle; }
 .h-wx-top .stale { position: absolute; top: 0; right: 0; }
+
+/* ---- phase 4: Pilegården drop-off / pick-up (top right) and the kids' day (bottom right) */
+.h-presence { justify-content: flex-start; gap: 10px; }
+.h-drop-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 4px 14px; border-radius: 14px; background: rgb(var(--c-rgb) / .14); border-left: 8px solid var(--c); }
+.h-drop-k { flex: none; font-size: 13px; font-weight: 800; font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.h-drop-who { flex: 1; min-width: 0; font-size: 24px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-drop-t { font-size: 24px; }
+.h-drop-row.is-open { background: var(--paper-2); border-left-color: var(--line); }
+.h-drop-row.is-open .h-drop-who { color: var(--mute); font-weight: 600; }
+.h-drop-free { font-size: 24px; color: var(--ink-2); padding-top: 6px; }
+
+.h-kids { display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+.h-kids-row { flex: 1; display: flex; gap: 8px; align-items: stretch; min-height: 0; overflow: hidden; }
+.h-kid { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.h-kid-pic { font-size: 44px; line-height: 1.05; }
+.h-kid-dots { display: flex; gap: 4px; height: 10px; margin: 2px 0; }
+.h-kid-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.h-kid b { font-size: 15px; line-height: 1.1; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.h-kid small { font-size: 14px; line-height: 1.1; font-weight: 700; color: var(--mute); }

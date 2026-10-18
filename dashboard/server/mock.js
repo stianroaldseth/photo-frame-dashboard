@@ -4,73 +4,14 @@ import { cphDate, cphAt, addDays, weekday, isoWeek, WEEKDAYS_DA, TZ } from './ti
 import { family } from './family.js';
 import { parseWeather } from './sources/weather.js';
 import { parseRecords, summarize } from './sources/electricity.js';
-
-const iso = (ymd, hm) => cphAt(ymd, hm).toISOString();
-const isWeekend = (ymd) => [0, 6].includes(weekday(ymd));
+import { parseIcs } from './sources/ical.js';
 
 export function clock(now = new Date()) {
   const today = cphDate(now);
   return { now: now.toISOString(), timezone: TZ, date: today, weekday: WEEKDAYS_DA[weekday(today)], week: isoWeek(today) };
 }
 
-// Icon-first plan for the kids. `icon` is a keyword the frontend maps to a picture.
-export function kids(now = new Date()) {
-  const today = cphDate(now);
-  if (isWeekend(today)) {
-    return {
-      date: today, dayType: 'weekend',
-      items: [
-        { icon: 'weekend', label: 'Weekend', who: ['kid1', 'kid2'] },
-        { icon: 'swimming', label: 'Svømning', who: ['kid1'], start: iso(today, '10:00'), end: iso(today, '10:45') },
-        { icon: 'grandparents', label: 'Bedsteforældre', who: ['kid1', 'kid2'], start: iso(today, '14:00'), end: iso(today, '17:00') },
-      ],
-    };
-  }
-  return {
-    date: today, dayType: 'weekday',
-    items: [
-      { icon: 'kindergarten', label: 'Børnehave', who: ['kid1'], start: iso(today, '07:45'), end: iso(today, '15:30') },
-      { icon: 'nursery', label: 'Vuggestue', who: ['kid2'], start: iso(today, '07:45'), end: iso(today, '15:30') },
-      { icon: 'dinner', label: 'Aftensmad', who: ['kid1', 'kid2'], start: iso(today, '17:30') },
-    ],
-  };
-}
-
-export function dropoff(now = new Date()) {
-  const today = cphDate(now);
-  if (isWeekend(today)) return { date: today, place: 'Pilegården', dropoff: null, pickup: null };
-  const even = isoWeek(today) % 2 === 0;
-  return {
-    date: today, place: 'Pilegården',
-    dropoff: { who: even ? 'stian' : 'ulrika', time: iso(today, '07:45') },
-    pickup: { who: even ? 'ulrika' : 'stian', time: iso(today, '15:30') },
-  };
-}
-
-export function calendar(now = new Date()) {
-  const today = cphDate(now);
-  const ev = (d, s, e, title, people, extra = {}) => ({ title, start: iso(addDays(today, d), s), end: iso(addDays(today, d), e), allDay: false, people, ...extra });
-  const allDay = (d, title, people) => ({ title, start: addDays(today, d), end: addDays(today, d + 1), allDay: true, people });
-  const events = [
-    ev(0, '07:45', '08:00', 'Aflevering Pilegården', ['stian']),
-    ev(0, '09:00', '10:00', 'Møde', ['ulrika'], { location: 'Kontoret' }),
-    ev(0, '15:30', '15:45', 'Hentning Pilegården', ['ulrika']),
-    ev(0, '17:30', '18:30', 'Aftensmad', ['stian', 'ulrika', 'kid1', 'kid2']),
-    allDay(1, 'Skraldespand ud', ['stian']),
-    ev(1, '16:30', '17:15', 'Svømning', ['kid1', 'ulrika'], { location: 'Birkerød Svømmehal' }),
-    ev(2, '18:00', '20:00', 'Fodbold', ['stian']),
-    ev(3, '14:00', '17:00', 'Mormor og morfar', ['kid1', 'kid2']),
-  ].map((e, i) => ({ id: 'mock-' + i, ...e }));
-  return {
-    people: family(),
-    days: [0, 1, 2, 3].map((d) => {
-      const date = addDays(today, d);
-      return { date, events: events.filter((e) => (e.allDay ? e.start : cphDate(new Date(e.start))) === date) };
-    }),
-  };
-}
-
-// Weather and prices go through the real parsers, fed with payloads in the sources' formats,
+// Calendar, weather and prices go through the real parsers, fed with payloads in the sources' formats,
 // so mock and live data always have the same shape.
 export function openMeteoSample(now = new Date()) {
   const today = cphDate(now), tomorrow = addDays(today, 1);
@@ -116,22 +57,68 @@ export function electricity(now = new Date()) {
   return summarize(parseRecords(dayAheadSample(now).records), { now, chargeHours: 3, dataset: 'mock' });
 }
 
-export function birthdays(now = new Date()) {
-  const today = cphDate(now);
-  return {
-    month: today.slice(0, 7),
-    items: [
-      { date: addDays(today, 5), title: 'Mormors fødselsdag', type: 'birthday', age: 68 },
-      { date: addDays(today, 9), title: 'Efterårsferie slut', type: 'event' },
-      { date: addDays(today, 12), title: 'Fødselsdag i børnehaven', type: 'event' },
-    ],
-  };
-}
-
 export function photos() {
   return {
     items: ['birkerod-lake', 'beach-day', 'forest-walk', 'snow-day', 'garden'].map((seed, i) => ({
       id: seed, url: `https://picsum.photos/seed/${seed}/800/600`, caption: null, date: null, index: i,
     })),
   };
+}
+
+// A family calendar in Google's iCal format, following the conventions in tags.js.
+const VTIMEZONE = `BEGIN:VTIMEZONE
+TZID:Europe/Copenhagen
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE`;
+
+export function sampleIcs(now = new Date(), env = process.env) {
+  const kid1 = family(env)[2].name;
+  const today = cphDate(now);
+  // Monday of this week, so weekly events land on the same weekdays every week.
+  const monday = addDays(today, -((weekday(today) + 6) % 7));
+  const d = (ymd) => ymd.replaceAll('-', '');
+  let n = 0;
+  const vevent = (dates, summary, extra = []) => ['BEGIN:VEVENT', `UID:sample-${++n}@dashboard`, 'DTSTAMP:20260101T000000Z', ...dates, `SUMMARY:${summary}`, ...extra, 'END:VEVENT'].join('\n');
+  const timed = (day, from, to, summary, extra) => vevent([
+    `DTSTART;TZID=Europe/Copenhagen:${d(day)}T${from.replace(':', '')}00`,
+    `DTEND;TZID=Europe/Copenhagen:${d(day)}T${to.replace(':', '')}00`,
+  ], summary, extra);
+  const allDay = (day, summary) => vevent([`DTSTART;VALUE=DATE:${d(day)}`, `DTEND;VALUE=DATE:${d(addDays(day, 1))}`], summary);
+  const weekly = (days, interval = 1) => [`RRULE:FREQ=WEEKLY;INTERVAL=${interval};BYDAY=${days}`];
+
+  const events = [
+    timed(monday, '07:45', '08:00', 'Aflevering Stian', weekly('MO,TU,TH')),
+    timed(addDays(monday, 2), '07:45', '08:00', 'Aflevering Ulrika', weekly('WE,FR')),
+    timed(monday, '15:30', '15:45', 'Hentning Ulrika', weekly('MO,TU,WE')),
+    timed(addDays(monday, 3), '15:00', '15:15', 'Hentning Stian', weekly('TH,FR')),
+    timed(addDays(monday, 2), '16:30', '17:15', `Svømning ${kid1} #svømning`, ['LOCATION:Birkerød Svømmehal', ...weekly('WE')]),
+    timed(addDays(monday, 5), '10:00', '13:00', 'Mormor og morfar #mormor #familie', weekly('SA', 2)),
+    timed(today, '09:00', '10:00', 'Møde med banken Ulrika'),
+    timed(today, '17:30', '18:30', 'Aftensmad #alle'),
+    timed(addDays(today, 1), '18:00', '20:00', 'Fodbold Stian'),
+    timed(addDays(today, 2), '08:30', '09:00', `Tandlæge ${kid1} #tandlæge`),
+    allDay(addDays(today, 3), 'Skraldespand ud Stian'),
+    allDay(addDays(today, 5), 'Mormors fødselsdag #fødselsdag'),
+    allDay(addDays(today, 12), 'Fødselsdag i børnehaven #fødselsdag'),
+    allDay(addDays(today, 16), 'Sommerhus #familie'),
+  ];
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//dashboard//mock//DA', VTIMEZONE, ...events, 'END:VCALENDAR'].join('\n');
+}
+
+export function events(now = new Date(), env = process.env) {
+  const today = cphDate(now);
+  return parseIcs(sampleIcs(now, env), { cal: { owner: 'family' }, people: family(env), fromYmd: addDays(today, -1), toYmd: addDays(today, 35) });
 }

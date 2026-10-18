@@ -52,13 +52,34 @@
       (c ? '<div class="h-pw-tip">' + App.icon('car', 22) + '<span>Billigst at lade <b>' + when + '</b> · ' + App.fmt.num(c.avgPrice, 2) + ' kr</span></div>' : '');
   }
 
-  function presence() {
-    return D.people.map(function (p) {
-      var sub = p.home ? 'Hjemme' : (p.eta ? '<b>Hjemme om ' + p.eta + ' min</b>' : p.status);
-      return '<div class="h-who' + (p.home ? ' is-home' : '') + '" style="' + App.pstyle(p) + '">' +
-        App.avatar(p, 36, p.home ? '' : 'avatar--away') +
-        '<span><b>' + p.name + '</b><small>' + sub + '</small></span></div>';
-    }).join('');
+  // Widget 3: who takes the kids to Pilegården and who picks them up.
+  function dropoff() {
+    var env = App.feeds.dropoff, X = env && env.data;
+    function row(kind, label, x) {
+      if (!x) return '<div class="h-drop-row is-open"><span class="h-drop-k">' + label + '</span><span class="h-drop-who">Ikke aftalt</span></div>';
+      var who = Array.isArray(x.who) ? x.who : [x.who];
+      var p = x.who ? App.person(who[0]) : D.family;
+      return '<div class="h-drop-row" style="' + App.pstyle(p) + '"><span class="h-drop-k">' + label + '</span>' +
+        '<span class="h-drop-who">' + (x.who ? who.map(function (id) { return App.person(id).name; }).join(' + ') : App.esc(x.title)) + '</span>' +
+        '<b class="h-drop-t num">' + App.fmt.time(new Date(x.time)) + '</b></div>';
+    }
+    var head = '<div class="label">Pilegården' + App.staleTag(env) + '</div>';
+    if (!X) return head;
+    var weekend = [0, 6].indexOf(App.now().getDay()) > -1;
+    if (weekend && !X.dropoff && !X.pickup) return head + '<div class="h-drop-free serif"><i>Weekend</i> – ingen aflevering</div>';
+    return head + row('drop', 'Aflevering', X.dropoff) + row('pick', 'Hentning', X.pickup);
+  }
+
+  // Widget 2: the kids' day in pictures.
+  function kids() {
+    var env = App.feeds.kids, K = env && env.data;
+    if (!K) return '<div class="label">Børnenes dag</div>';
+    return '<div class="label">Børnenes dag' + App.staleTag(env) + '</div><div class="h-kids-row">' + K.items.map(function (i) {
+      var dots = i.who.map(function (id) { return '<i style="' + App.pstyle(id) + '"></i>'; }).join('');
+      var t = i.start ? App.fmt.time(new Date(i.start)) : '';
+      return '<div class="h-kid"><span class="h-kid-pic">' + i.emoji + '</span><span class="h-kid-dots">' + dots + '</span>' +
+        '<b>' + App.esc(i.label) + '</b>' + (t ? '<small class="num">' + t + '</small>' : '') + '</div>';
+    }).join('') + '</div>';
   }
 
   function hero() {
@@ -120,38 +141,15 @@
   }
   App.ring = ring;
 
-  function shopping() {
-    var open = D.groceries.filter(function (g) { return !g.done; });
-    var recent = open.slice(-3).reverse();
-    return '<div class="label">Indkøb</div>' +
-      '<div class="h-stat"><span class="num">' + open.length + '</span><small>varer på listen</small></div>' +
-      '<ul class="h-recent">' + recent.map(function (g) {
-        return '<li><i></i>' + App.esc(g.name) + '</li>';
-      }).join('') + '</ul>';
-  }
-
-  function status() {
-    var lights = D.devices.filter(function (d) { return d.type === 'light' && d.on; }).length;
-    var unlocked = D.devices.filter(function (d) { return d.type === 'lock' && !d.locked; });
-    var garage = D.devices.filter(function (d) { return d.type === 'garage'; })[0];
-    var secure = !unlocked.length && garage.state === 'closed';
-    var secText = secure ? 'Alt låst' : (garage.state !== 'closed' ? 'Garagen er åben' : unlocked[0].name + ' ulåst');
-    return '<div class="label">Hjemmet</div>' +
-      '<div class="h-st-row">' + App.icon('bulb', 24) + '<b class="num">' + lights + '</b><span>lys tændt</span></div>' +
-      '<div class="h-st-row' + (secure ? '' : ' is-warn') + '">' + App.icon(secure ? 'lock' : 'unlock', 24) + '<span>' + secText + '</span></div>' +
-      '<div class="h-st-row">' + App.icon('thermo', 24) + '<b class="num">' + D.climate.current + '°</b><span>inde</span></div>';
-  }
-
   function paint() {
     var el = V.el;
     el.querySelector('.h-clock').innerHTML = clock();
     el.querySelector('.h-weather').innerHTML = weather();
-    el.querySelector('.h-presence').innerHTML = presence();
+    el.querySelector('.h-presence').innerHTML = dropoff();
     el.querySelector('.h-hero-slot').innerHTML = hero();
     el.querySelector('.h-lanes').innerHTML = lanes();
     el.querySelector('.h-power').innerHTML = power();
-    el.querySelector('.h-shop').innerHTML = shopping();
-    el.querySelector('.h-status').innerHTML = status();
+    el.querySelector('.h-kids').innerHTML = kids();
   }
 
   function photoCaption(s) {
@@ -171,7 +169,7 @@
           '<div class="h-side">' +
           '  <button class="h-photo" data-go="photos"><div class="h-photo-stage"></div><div class="h-photo-cap"></div></button>' +
           '  <div class="h-power card"></div>' +
-          '  <div class="h-duo"><button class="h-shop card" data-go="shopping"></button><button class="h-status card" data-go="control"></button></div>' +
+          '  <div class="h-kids card"></div>' +
           '</div></div>';
         el.addEventListener('click', function (e) {
           var ev = e.target.closest('[data-ev]');
@@ -199,5 +197,7 @@
     if (!V.el || !V.el.firstChild) return;
     if (name === 'weather') V.el.querySelector('.h-weather').innerHTML = weather();
     if (name === 'electricity') V.el.querySelector('.h-power').innerHTML = power();
+    if (name === 'dropoff') V.el.querySelector('.h-presence').innerHTML = dropoff();
+    if (name === 'kids') V.el.querySelector('.h-kids').innerHTML = kids();
   });
 })();

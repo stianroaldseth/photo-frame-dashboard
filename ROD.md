@@ -2,6 +2,39 @@
 
 Newest first. Each entry: date, decision, why, and alternatives considered.
 
+## 2026-10-18 — Calendar: one iCal fetch, four widgets, conventions in titles
+
+**Decision:** `CALENDAR_URLS` (secret iCal addresses) is fetched once per 5 minutes and parsed
+with `ical.js`; kids, drop-off, calendar and birthdays are computed from the same events.
+People are found from names or `#name` in the title, else the calendar's prefix, else everyone.
+Pictures, drop-off words and birthday rules live in `server/tags.js`. If one calendar fails,
+the whole refresh fails so the wall keeps the last complete set (marked stale) instead of
+silently losing someone's events. Without `CALENDAR_URLS` a sample `.ics` runs through the same
+parser.
+**Why:** iCal needs no Google API project or OAuth; writing "Aflevering Stian" or "#svømning" is
+easy from any phone. **Alternative:** Google Calendar API (OAuth, more setup, no gain here).
+
+## 2026-10-18 — `ical.js` is the first runtime dependency
+
+**Decision:** use `ical.js` (Mozilla, zero dependencies) for parsing.
+**Why:** recurring events, moved/cancelled instances, EXDATE and timezones are easy to get
+wrong by hand; Google calendars are full of them.
+
+## 2026-10-18 — Kids' day defaults to børnehave/vuggestue on weekdays
+
+**Decision:** on weekdays the 5-year-old gets 🏫 Børnehave and the 2-year-old 🧸 Vuggestue
+automatically, timed by the drop-off/pick-up events, unless the day is tagged `#fri`, `#ferie`,
+`#syg` or `#lukket`. Weekends show 🏠 Weekend. Pictures are emoji.
+**Why:** nobody has to enter the normal day; emoji are large, colourful and need no image files.
+**Alternative:** custom drawn icons (nicer, more work; can replace the emoji later).
+
+## 2026-10-18 — Home screen: Pilegården card and kids' strip replace demo tiles
+
+**Decision:** the top-right "who's home" block (fake presence data) is now the Pilegården
+drop-off/pick-up card; the shopping and smart-home tiles are now *Børnenes dag*. Birthdays have
+an endpoint but no place on screen yet; that comes with the phase 5 layout.
+**Why:** these are widgets 2 and 3 on the list; the demo tiles had no real data behind them.
+
 ## 2026-10-18 — Electricity: raw DK2 spot price, 15-minute data averaged to hours
 
 **Decision:** use Energi Data Service `DayAheadPrices` (15-minute slots since 1 Oct 2025) for

@@ -66,5 +66,7 @@ all logic lives in this web app, hosted on Railway.
 - [x] Phase 1 — Explore
 - [x] Phase 2 — Clean up. Decision: keep all existing views for now (see ROD.md).
 - [x] Phase 3 — Backend
-- [ ] Phase 4 — Widgets. Done: 1 clock, 5 weather, 6 electricity. Waiting on Stian for kids'
-  names, iCal addresses and tagging convention (widgets 2, 3, 4, 7). Photos (9) needs a source.
+- [ ] Phase 4 — Widgets. Done: 1 clock, 5 weather, 6 electricity. Built with a sample
+  calendar, waiting for `CALENDAR_URLS` + kids' names: 2 kids, 3 drop-off, 4 calendar,
+  7 birthdays (API only, placed in phase 5). Open: 8 solar/waste (optional), 9 photos (needs a
+  source). Tagging convention proposed in README, not yet confirmed by Stian.

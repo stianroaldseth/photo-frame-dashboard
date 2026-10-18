@@ -3,6 +3,26 @@
 All notable changes, one section per phase. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Phase 4, part 2] Calendar widgets — 2026-10-18
+
+### Added
+- `server/sources/ical.js`: fetches the shared Google Calendar(s) from `CALENDAR_URLS` and
+  expands recurring events (moved, cancelled and excluded instances, timezones, all-day events).
+- `server/tags.js`: calendar conventions (#tags → pictures, drop-off/pick-up words, birthdays).
+- **Kids' day (widget 2):** *Børnenes dag* strip with large pictures, the kid's colour and time.
+- **Pilegården (widget 3):** who does drop-off and pick-up today, and when.
+- **Family calendar (widget 4):** today + 3 days from iCal, colour-coded per person, in the
+  home lanes, the "Næste" card and the Calendar view.
+- **Birthdays (widget 7):** `/api/birthdays` (next 31 days); on-screen placement in phase 5.
+- A sample calendar in iCal format, used until `CALENDAR_URLS` is set. 9 new tests (26 total).
+
+### Changed
+- Frontend people are Stian, Ulrika and the two kids (names from `KID1_NAME`/`KID2_NAME`).
+- Home screen: presence block → Pilegården card; shopping and smart-home tiles → kids' strip.
+
+### Removed
+- Frontend mock events and the demo family (Wes, Claudia, …).
+
 ## [Phase 4, part 1] Clock, weather, electricity — 2026-10-18
 
 ### Added

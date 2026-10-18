@@ -65,4 +65,4 @@ all logic lives in this web app, hosted on Railway.
 
 - [x] Phase 1 — Explore
 - [x] Phase 2 — Clean up. Decision: keep all existing views for now (see ROD.md).
-- [ ] Phase 3 — Backend
+- [ ] Phase 3 — Backend (built, awaiting Stian's OK)
